@@ -7,9 +7,15 @@ namespace Minesweeper
 {
     public partial class FormMinesweeper : Form
     {
+        private Minefiled[,] _mat;
+        private int _tableR, _tableC, _tableBombs, _tableSafe;
         public FormMinesweeper(int column = 9, int row = 9, int bombs = 10)
         {
             InitializeComponent();
+            _tableC = column;
+            _tableR = row;
+            _tableBombs = bombs;
+            _tableSafe = _tableC * _tableR - _tableBombs;
             InitButtons(column, row, bombs);
 
         }
@@ -33,7 +39,7 @@ namespace Minesweeper
 
         public void InitButtons(int row, int column, int bombs)
         {
-            Minefiled[,] mat = new Minefiled[row, column];
+            _mat = new Minefiled[row, column];
 
             int X = 2;
             int Y = 0;
@@ -48,16 +54,20 @@ namespace Minesweeper
                 for (int j = 0; j < column; j++)
                 {
 
-                    mat[i, j] = new Minefiled
+                    _mat[i, j] = new Minefiled
                     {
                         Size = new Size(50, 50),
                         ForeColor = Color.Red,
                         BackColor = Color.LightGray,
                         Anchor = AnchorStyles.Top | AnchorStyles.Left,
-                        Location = new Point(X, Y)
+                        Location = new Point(X, Y),
+                        //Name = $"{i}:{j}"
+                        X = i,
+                        Y = j,
+                        IsOpen = false
                     };
-                    mat[i, j].MouseDown += FormMinesweeper_MouseDown;
-                    this.panelGame.Controls.Add(mat[i, j]);
+                    _mat[i, j].MouseDown += FormMinesweeper_MouseDown;
+                    this.panelGame.Controls.Add(_mat[i, j]);
                     X += 50;
                 }
                 Y += 50;
@@ -71,9 +81,9 @@ namespace Minesweeper
                     for (int j = 0; j < column; j++)
                     {
                         plantBomb = random.NextDouble() >= 0.8 ? true : false;
-                        if (!mat[i, j].isBomb && plantBomb)
+                        if (!_mat[i, j].IsBomb && plantBomb)
                         {
-                            mat[i, j].isBomb = true;
+                            _mat[i, j].IsBomb = true;
                             if (--bombs == 0) return;
                             break;
                         }
@@ -84,7 +94,10 @@ namespace Minesweeper
 
         private partial class Minefiled : Button
         {
-            public bool isBomb;
+            public bool IsBomb { get; set; }
+            public bool IsOpen { get; set; }
+            public int X { get; set; }
+            public int Y { get; set; }
         }
 
         private void FormMinesweeper_MouseDown(object sender, MouseEventArgs e)
@@ -92,24 +105,68 @@ namespace Minesweeper
             Minefiled minefiled = sender as Minefiled;
             if (e.Button == MouseButtons.Left)
             {
-                if (minefiled.isBomb)
+                if (minefiled.Text == "Flag") { minefiled.Text = ""; }
+                if (minefiled.IsBomb)
                 {
-                    minefiled.BackgroundImage = Image.FromFile("C:\\Users\\vlatk\\Desktop\\mine-clipart-50x50.png");
                     minefiled.BackColor = Color.White;
+                    foreach (var x in _mat)
+                    {
+                        if (x.IsBomb)
+                        {
+                            x.BackgroundImage = Image.FromFile("Resources\\mine-clipart-50x50-inactive.png");
+                        }
+                        x.Enabled = false;
+                    }
+                    minefiled.BackgroundImage = Image.FromFile("Resources\\mine-clipart-50x50.png");
                 }
-                if (!minefiled.isBomb)
+                if (minefiled.IsOpen) return;
+                if (!minefiled.IsBomb)
                 {
                     minefiled.BackColor = Color.White;
+                    minefiled.IsOpen = true;
+                    minefiled.Text = numberOfBombsAround(minefiled);
+                    if(--_tableSafe == 0)
+                    {
+                        MessageBox.Show("VI VON ZULUL");
+                    }
+                    //otvori polja koja su prazna ako je polje prazno
+
                 }
             }
             else if (e.Button == MouseButtons.Right)
             {
                 minefiled.ForeColor = Color.Blue;
-                if (minefiled.Text == "Flag") { minefiled.Text = ""; }
+                if (minefiled.Text == "Flag") { 
+                    minefiled.Text = "";
+                    minefiled.ForeColor = Color.White;
+                }
                 else if (minefiled.BackColor != Color.White) minefiled.Text = "Flag";
             }
 
+
+
             ActiveControl = null;
+        }
+
+        private string numberOfBombsAround(Minefiled minefiled)
+        {
+            int LowXbounds = minefiled.X - 1 < 0 ? 0 : minefiled.X - 1;
+            int HighXbounds = minefiled.X + 1 >= _tableR ? _tableR - 1 : minefiled.X + 1;
+            int LowYbounds = minefiled.Y - 1 < 0 ? 0 : minefiled.Y - 1;
+            int HighYbounds = minefiled.Y + 1 >= _tableC ? _tableC - 1 : minefiled.Y + 1;
+
+            int bombsAround = 0;
+            for (int i = LowXbounds; i <= HighXbounds; i++)
+            {
+                for (int j = LowYbounds; j <= HighYbounds; j++)
+                {
+                    if (_mat[i, j].IsBomb)
+                    {
+                        bombsAround++;
+                    }
+                }
+            }
+            return bombsAround.ToString();
         }
 
     }
