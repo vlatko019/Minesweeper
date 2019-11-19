@@ -42,11 +42,6 @@ namespace Minesweeper
             this.Enabled = false;
         }
 
-        private void saveGameToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("To do...");
-        }
-
         public void InitButtons(int row, int column, int bombs)
         {
             _mat = new Minefiled[row, column];
@@ -57,7 +52,6 @@ namespace Minesweeper
             this.Size = size;
 
             var random = new Random();
-            bool plantBomb;
 
             for (int i = 0; i < row; i++)
             {
@@ -67,7 +61,6 @@ namespace Minesweeper
                     _mat[i, j] = new Minefiled
                     {
                         Size = new Size(50, 50),
-                        ForeColor = Color.Red,
                         BackColor = Color.LightGray,
                         Anchor = AnchorStyles.Top | AnchorStyles.Left,
                         Location = new Point(X, Y),
@@ -87,34 +80,30 @@ namespace Minesweeper
             if (bombs > row * column) bombs = row * column;
             while (true)
             {
-                for (int i = 0; i < row; i++)
+                int i = random.Next(0, row);
+                int j = random.Next(0, column);
+                
+                if (!_mat[i, j].IsBomb)
                 {
-                    for (int j = 0; j < column; j++)
+                    _mat[i, j].IsBomb = true;
+
+                    int LowXbounds = i - 1 < 0 ? 0 : i - 1;
+                    int HighXbounds = i + 1 >= _tableR ? _tableR - 1 : i + 1;
+                    int LowYbounds = j - 1 < 0 ? 0 : j - 1;
+                    int HighYbounds = j + 1 >= _tableC ? _tableC - 1 : j + 1;
+
+                    for (int ia = LowXbounds; ia <= HighXbounds; ia++)
                     {
-                        plantBomb = random.NextDouble() >= 0.85 ? true : false;
-                        if (!_mat[i, j].IsBomb && plantBomb)
+                        for (int ja = LowYbounds; ja <= HighYbounds; ja++)
                         {
-                            _mat[i, j].IsBomb = true;
-
-                            int LowXbounds = i - 1 < 0 ? 0 : i - 1;
-                            int HighXbounds = i + 1 >= _tableR ? _tableR - 1 : i + 1;
-                            int LowYbounds = j - 1 < 0 ? 0 : j - 1;
-                            int HighYbounds = j + 1 >= _tableC ? _tableC - 1 : j + 1;
-
-                            for (int ia = LowXbounds; ia <= HighXbounds; ia++)
-                            {
-                                for (int ja = LowYbounds; ja <= HighYbounds; ja++)
-                                {
-                                    _mat[ia, ja].BombsAround++;
-                                }
-                            }
-
-                            if (--bombs == 0) return;
-                            break;
+                            _mat[ia, ja].BombsAround++;
                         }
                     }
+
+                    if (--bombs == 0) return;
                 }
             }
+
         }
         public partial class Minefiled : Button
         {
@@ -188,8 +177,6 @@ namespace Minesweeper
             writer.Close();
 
         }
-
-
         private void FormMinesweeper_MouseDown(object sender, MouseEventArgs e)
         {
             if (!timer.Enabled)
@@ -241,13 +228,11 @@ namespace Minesweeper
                 if (minefiled.IsOpen) return;
                 if (minefiled.IsFlag)
                 {
-                    minefiled.ForeColor = Color.White;
                     minefiled.IsFlag = false;
                     minefiled.BackgroundImage = Image.FromFile("Resources\\closedField-50x50.png");
                 }
                 else
                 {
-                    minefiled.ForeColor = Color.Blue;
                     minefiled.IsFlag = true;
                     minefiled.BackgroundImage = Image.FromFile("Resources\\flag-50x50.png");
                 }
@@ -256,7 +241,6 @@ namespace Minesweeper
 
             ActiveControl = null;
         }
-
         private void OpenEmptySurrounding(Minefiled minefiled)
         {
             int LowXbounds = minefiled.X - 1 < 0 ? 0 : minefiled.X - 1;
@@ -276,7 +260,6 @@ namespace Minesweeper
                 }
             }
         }
-
         private void OpenField(Minefiled minefiled)
         {
             if (minefiled.IsFlag) return;
