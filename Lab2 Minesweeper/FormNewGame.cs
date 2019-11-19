@@ -24,12 +24,16 @@ namespace NewGame
         {
             _parent.panelGame.Controls.Clear();
             _parent.InitButtons((int)numericUpDown1.Value, (int)numericUpDown2.Value, (int)numericUpDown3.Value);
+            _parent._tableBombs = (int)numericUpDown3.Value;
+            _parent._tableC = (int)numericUpDown2.Value;
+            _parent._tableR = (int)numericUpDown1.Value;
+            _parent._tableSafe = _parent._tableC * _parent._tableR - _parent._tableBombs;
             this.Close();
         }
 
         private void FormNewGame_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _parent.Show();
+            _parent.Enabled = true;
         }
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
