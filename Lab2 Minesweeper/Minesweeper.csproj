@@ -61,7 +61,10 @@
     <Compile Include="FormNewGame.Designer.cs">
       <DependentUpon>FormNewGame.cs</DependentUpon>
     </Compile>
-    <Compile Include="Minefield.cs" />
+    <Compile Include="Field.cs" />
+    <Compile Include="Minefield.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FormMinesweeper.resx">
